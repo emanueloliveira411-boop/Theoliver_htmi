@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theoliver Delícias no Pote</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background: #007BFF; color: white; margin: 0;}
+  #topoLoja { text-align:center; margin-bottom:20px; padding:10px; border-radius:12px; background-color:#ffffff22; }
+  #imagemLojaTopo { max-width:100%; border-radius:12px; }
+  .produto { border: 2px solid white; padding: 15px; margin-bottom: 15px; background: #ffffff22; border-radius: 12px; }
+  .produto img { max-width: 100px; display: block; margin-bottom: 10px; border-radius: 8px; }
+  button { padding: 10px 15px; background: #25D366; color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-top: 5px;}
+  button:hover { background: #1ebc57; }
+  #btnEditar { position: fixed; top: 10px; right: 10px; background: #444; }
+  input { margin-bottom: 10px; padding: 5px; width: 100%; border-radius: 5px; border: none; }
+  #modoEdicao { background: #fff; color: black; padding: 15px; border-radius: 12px; margin-top: 20px; }
+  .novoProduto { border: 1px solid #ccc; padding: 10px; border-radius: 8px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<!-- Topo da Loja -->
+<div id="topoLoja">
+  <img id="imagemLojaTopo" src="https://via.placeholder.com/300x100?text=Banner" alt="Banner da Loja"><br><br>
+  <h1 id="nomeLoja"><b>Theoliver Delícias no Pote</b></h1>
+</div>
+
+<!-- Botão de edição -->
+<button id="btnEditar" onclick="pedirSenha()">⚙️</button>
+
+<!-- Lista de produtos -->
+<div id="produtos"></div>
+
+<!-- Modo Edição -->
+<div id="modoEdicao" style="display:none;">
+  <h2>⚙️ Modo Edição</h2>
+
+  <label>Nome da Loja:</label><br>
+  <input type="text" id="editNomeLoja"><br><br>
+
+  <label>Banner da Loja (URL):</label><br>
+  <input type="text" id="editImagemTopo" placeholder="Cole o link do banner aqui"><br><br>
+
+  <label>Número WhatsApp:</label><br>
+  <input type="text" id="editNumero"><br><br>
+
+  <h3>🔑 Trocar Senha</h3>
+  <label>Nova Senha:</label><br>
+  <input type="password" id="novaSenha"><br><br>
+
+  <h3>Editar Produtos</h3>
+  <div id="edicaoProdutos"></div>
+
+  <h3>➕ Adicionar Novo Produto</h3>
+  <div class="novoProduto">
+    Nome: <input type="text" id="novoNome"><br>
+    Preço: <input type="number" id="novoPreco"><br>
+    Imagem (URL): <input type="text" id="novoImg"><br>
+    <button onclick="adicionarProduto()">Adicionar Produto</button>
+  </div>
+
+  <button onclick="salvarAlteracoes()">💾 Salvar Alterações</button>
+  <button onclick="sairModoEdicao()" style="background: gray;">🔙 Sair do Modo Edição</button>
+</div>
+
+<script>
+let produtos = [
+  { nome: "Bolo de Chocolate", preco: 20, img: "https://via.placeholder.com/100?text=Bolo" },
+  { nome: "Cookie de Baunilha", preco: 5, img: "https://via.placeholder.com/100?text=Cookie" },
+  { nome: "Pão de Queijo", preco: 3, img: "https://via.placeholder.com/100?text=Pao" }
+];
+
+let numeroWhatsApp = "5511999999999";
+let senhaCorreta = "1234";
+
+const container = document.getElementById("produtos");
+
+function mostrarProdutos() {
+  container.innerHTML = "";
+  produtos.forEach(produto => {
+    const div = document.createElement("div");
+    div.className = "produto";
+    div.innerHTML = `
+      <img src="${produto.img}" alt="${produto.nome}">
+      <strong>${produto.nome}</strong><br>
+      <span>R$ ${produto.preco.toFixed(2)}</span><br><br>
+      <button onclick="enviarWhatsApp('${produto.nome}')">Pedir no WhatsApp</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+mostrarProdutos();
+
+function enviarWhatsApp(nomeProduto) {
+  const mensagem = `Olá! Quero comprar o produto: ${nomeProduto}`;
+  const link = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+  window.open(link, "_blank");
+}
+
+function pedirSenha() {
+  const senha = prompt("Digite a senha para entrar no modo edição:");
+  if (senha === senhaCorreta) entrarModoEdicao();
+  else alert("Senha incorreta!");
+}
+
+function entrarModoEdicao() {
+  document.getElementById("modoEdicao").style.display = "block";
+  document.getElementById("editNomeLoja").value = document.getElementById("nomeLoja").innerText;
+  document.getElementById("editImagemTopo").value = document.getElementById("imagemLojaTopo").src;
+  document.getElementById("editNumero").value = numeroWhatsApp;
+
+  const edicaoContainer = document.getElementById("edicaoProdutos");
+  edicaoContainer.innerHTML = "";
+  produtos.forEach((produto, index) => {
+    edicaoContainer.innerHTML += `
+      <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px; border-radius:8px;">
+        <label>Produto ${index+1}:</label><br>
+        Nome: <input type="text" id="editNome${index}" value="${produto.nome}"><br>
+        Preço: <input type="number" id="editPreco${index}" value="${produto.preco}"><br>
+        Imagem (URL): <input type="text" id="editImg${index}" value="${produto.img}"><br>
+        <button onclick="removerProduto(${index})" style="background:red;">🗑 Remover</button>
+      </div>
+    `;
+  });
+}
+
+function adicionarProduto() {
+  const nome = document.getElementById("novoNome").value;
+  const preco = parseFloat(document.getElementById("novoPreco").value);
+  const img = document.getElementById("novoImg").value;
+  if (nome && preco && img) {
+    produtos.push({ nome, preco, img });
+    alert("Produto adicionado! Não esqueça de salvar as alterações.");
+    entrarModoEdicao();
+    document.getElementById("novoNome").value = "";
+    document.getElementById("novoPreco").value = "";
+    document.getElementById("novoImg").value = "";
+  } else alert("Preencha todos os campos do novo produto!");
+}
+
+function removerProduto(index) {
+  if (confirm("Tem certeza que deseja remover este produto?")) {
+    produtos.splice(index, 1);
+    entrarModoEdicao();
+  }
+}
+
+function salvarAlteracoes() {
+  // Nome e banner da loja
+  document.getElementById("nomeLoja").innerHTML = "<b>" + document.getElementById("editNomeLoja").value + "</b>";
+  const novaImagemTopo = document.getElementById("editImagemTopo").value;
+  if (novaImagemTopo) document.getElementById("imagemLojaTopo").src = novaImagemTopo;
+
+  // WhatsApp
+  numeroWhatsApp = document.getElementById("editNumero").value;
+
+  // Trocar senha
+  const novaSenha = document.getElementById("novaSenha").value;
+  if (novaSenha) senhaCorreta = novaSenha;
+
+  // Produtos
+  produtos.forEach((produto,index)=>{
+    produto.nome = document.getElementById("editNome"+index).value;
+    produto.preco = parseFloat(document.getElementById("editPreco"+index).value);
+    produto.img = document.getElementById("editImg"+index).value;
+  });
+
+  mostrarProdutos();
+  alert("Alterações salvas!");
+}
+
+function sairModoEdicao() {
+  document.getElementById("modoEdicao").style.display = "none";
+}
+</script>
+
+</body>
+</html>
